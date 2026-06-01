@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulacro ICFES Saber 11 — English Practice</title>
+    <meta name="description" content="Entrena para el examen oficial ICFES Saber 11 de inglés con retroalimentación en tiempo real y explicaciones.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/icfes.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- ── Main Header ── -->
+        <header class="main-header">
+            <div class="logo">
+                <span class="logo-icon">📝</span>
+                <h1>Saber 11 ICFES</h1>
+            </div>
+            <a href="index.html" class="header-back-btn">
+                <span>🏠</span> Volver a la App
+            </a>
+        </header>
+
+        <main class="content-area">
+
+            <!-- ── DASHBOARD VIEW ── -->
+            <div id="dashboard-view">
+                
+                <!-- Hero Banner -->
+                <section class="icfes-hero">
+                    <h2>Simulacro de Inglés ICFES</h2>
+                    <p>Prueba interactiva oficial con explicaciones en español, análisis de niveles y temas. Completa cada parte para desbloquear tu nivel de inglés esperado en la prueba Saber 11.</p>
+                    
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-value">7</span>
+                            <span class="hero-stat-label">Partes</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-value">50</span>
+                            <span class="hero-stat-label">Preguntas</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-value">A1-B1</span>
+                            <span class="hero-stat-label">Niveles</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Global stats placeholder / computed via JS -->
+                <div id="global-banner-container"></div>
+
+                <!-- Grid of ICFES Parts -->
+                <section style="margin-bottom: 3rem;">
+                    <h2 style="font-size: 1.4rem; margin-bottom: 1.5rem; color: var(--text-primary); border-left: 4px solid var(--icfes-accent); padding-left: 0.75rem;">Secciones de la Prueba</h2>
+                    <div class="parts-grid" id="parts-grid">
+                        <!-- Injected via JS -->
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- ── SITUATION SELECT VIEW ── -->
+            <div id="situation-select-view" class="hidden">
+                <div class="situation-header">
+                    <button class="situation-back-btn" id="situation-back-btn">← Volver a Secciones</button>
+                    <span class="situation-part-label" id="situation-part-title">Parte 7: Advanced Cloze Test</span>
+                </div>
+                
+                <section class="situations-intro">
+                    <h2 id="situation-view-title">Practicar por Situaciones</h2>
+                    <p id="situation-view-desc">Selecciona uno de los textos de lectura para comenzar tu práctica.</p>
+                </section>
+
+                <div class="situations-grid" id="situations-grid">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- ── QUIZ PLAY VIEW ── -->
+            <div id="quiz-view" class="hidden">
+                <div class="quiz-header">
+                    <button class="quiz-back-btn" id="quiz-back-btn">← Salir del Simulacro</button>
+                    <div class="quiz-meta">
+                        <span class="quiz-part-label" id="quiz-part-title">Parte 1</span>
+                        <div class="quiz-score-pill">Puntos: <span id="quiz-score-num">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Quiz Progress Bar -->
+                <div class="quiz-progress-wrap">
+                    <div class="quiz-progress-info">
+                        <span id="quiz-progress-text">Pregunta 1 de 5</span>
+                        <span>Progreso de la Parte</span>
+                    </div>
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="quiz-progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Question Box -->
+                <div class="question-panel">
+                    <div class="question-tag-row" id="q-tags">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <div class="question-text" id="q-text-container">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <!-- Answers options -->
+                    <div class="options-list" id="options-list">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <!-- Feedback Box -->
+                    <div id="quiz-feedback-container"></div>
+                    
+                    <!-- Next Question button -->
+                    <button class="quiz-next-btn hidden" id="quiz-next-btn">Siguiente Pregunta ➡️</button>
+                </div>
+            </div>
+
+            <!-- ── RESULTS VIEW ── -->
+            <div id="results-view" class="hidden">
+                <div class="results-card">
+                    <span class="results-emoji" id="res-emoji">👨‍🎓</span>
+                    <h2 class="results-title" id="res-title">¡Parte Finalizada!</h2>
+                    <p class="results-subtitle" id="res-subtitle">Buen trabajo practicando.</p>
+                    
+                    <div class="results-score-big" id="res-score-big">0 / 0</div>
+                    <div class="results-score-label">Respuestas Correctas</div>
+
+                    <div class="results-stats-row">
+                        <div class="results-stat">
+                            <span class="rs-val green" id="res-correct-val">0</span>
+                            <span class="rs-lbl">Correctas</span>
+                        </div>
+                        <div class="results-stat">
+                            <span class="rs-val red" id="res-incorrect-val">0</span>
+                            <span class="rs-lbl">Incorrectas</span>
+                        </div>
+                    </div>
+
+                    <!-- Review Section -->
+                    <div class="results-review">
+                        <h3>Detalle de tus Respuestas</h3>
+                        <div id="review-questions-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <div class="results-actions">
+                        <button class="btn-back-parts" id="btn-back-parts">📋 Volver a Secciones</button>
+                        <button class="btn-retry" id="btn-retry">🔄 Repetir Parte</button>
+                        <button class="btn-next-part" id="btn-next-part">Iniciar Siguiente ➡️</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Main logic -->
+    <script src="assets/js/icfes.js"></script>
+</body>
+</html>

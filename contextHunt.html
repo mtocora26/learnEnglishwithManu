@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Hunt — English Practice</title>
+    <meta name="description" content="Juego detective de verbos en inglés: Past Simple y Presente. Elige tu modo de práctica.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/contextHunt.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     START OVERLAY — Selección de modo
+     ══════════════════════════════════════════ -->
+<div class="ch-overlay" id="ch-start-overlay">
+    <div class="ch-modal ch-modal--wide">
+        <div class="ch-modal-emoji">🕵️</div>
+        <h1 class="ch-modal-title">Context Hunt</h1>
+        <p class="ch-modal-sub">
+            Ve la imagen → identifica la acción → elige la respuesta correcta.
+        </p>
+
+        <!-- ① What to practice -->
+        <div class="ch-section-label">① ¿Qué quieres practicar?</div>
+        <div class="ch-practice-tabs" role="group">
+            <button class="ch-practice-tab active" id="ch-ptype-past"    data-type="past">
+                🕐<span>Past Simple</span>
+                <small>Elige el pasado</small>
+            </button>
+            <button class="ch-practice-tab"        id="ch-ptype-present" data-type="present">
+                🔄<span>Presente</span>
+                <small>Elige el infinitivo</small>
+            </button>
+            <button class="ch-practice-tab"        id="ch-ptype-mixed"   data-type="mixed">
+                🔀<span>Mixto</span>
+                <small>Ambos alternados</small>
+            </button>
+        </div>
+
+        <!-- ② Game mode -->
+        <div class="ch-section-label">② Elige tu modo de juego</div>
+        <div class="ch-mode-cards">
+
+            <button class="ch-mode-card ch-mode-card--repaso" id="ch-mode-repaso">
+                <div class="ch-mode-icon">🔍</div>
+                <div class="ch-mode-name">Repaso</div>
+                <ul class="ch-mode-features">
+                    <li>Solo verbos <strong>"Me falta"</strong></li>
+                    <li>Sin reloj ❌⏱️</li>
+                    <li>Pista siempre visible</li>
+                </ul>
+                <div class="ch-mode-tag" id="ch-repaso-count">cargando…</div>
+            </button>
+
+            <button class="ch-mode-card ch-mode-card--aprender" id="ch-mode-aprender">
+                <div class="ch-mode-icon">📚</div>
+                <div class="ch-mode-name">Aprender</div>
+                <ul class="ch-mode-features">
+                    <li>Todos los verbos</li>
+                    <li>Sin reloj ❌⏱️</li>
+                    <li>Pista siempre visible</li>
+                </ul>
+                <div class="ch-mode-tag">20 verbos disponibles</div>
+            </button>
+
+            <button class="ch-mode-card ch-mode-card--detective" id="ch-mode-detective">
+                <div class="ch-mode-icon">⚡</div>
+                <div class="ch-mode-name">Detective</div>
+                <ul class="ch-mode-features">
+                    <li>Todos los verbos</li>
+                    <li>Reloj de 10 s ✅⏱️</li>
+                    <li>⭐ Estrella si &lt; 3 s</li>
+                </ul>
+                <div class="ch-mode-tag">¡Modo arcade!</div>
+            </button>
+
+        </div>
+
+        <a href="index.html" class="ch-modal-btn ch-modal-btn--secondary">← Volver al Menú</a>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NO-LEARNING OVERLAY
+     ══════════════════════════════════════════ -->
+<div class="ch-overlay hidden" id="ch-no-learning-overlay">
+    <div class="ch-modal">
+        <div class="ch-modal-emoji">📭</div>
+        <h2 class="ch-modal-title" style="font-size:1.5rem;">Sin verbos "Me falta"</h2>
+        <p class="ch-modal-sub">
+            Todavía no tienes verbos marcados como <strong>"Me falta"</strong>.<br>
+            Practica primero en la app principal y regresa aquí para repasar.
+        </p>
+        <button class="ch-modal-btn" id="ch-no-learning-back">← Cambiar modo</button>
+        <a href="index.html" class="ch-modal-btn ch-modal-btn--secondary">🏠 Ir al Menú</a>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     RESULTS OVERLAY
+     ══════════════════════════════════════════ -->
+<div class="ch-overlay hidden" id="ch-results-overlay">
+    <div class="ch-modal">
+        <div class="ch-modal-emoji" id="ch-res-emoji">🕵️</div>
+        <h2 class="ch-modal-title" id="ch-res-title">¡Caso cerrado!</h2>
+        <p class="ch-modal-sub" id="ch-res-sub">Buen trabajo.</p>
+
+        <div class="ch-modal-stats">
+            <div class="ch-stat-card">
+                <span class="ch-stat-val" id="ch-res-score">0</span>
+                <span class="ch-stat-lbl">Correctas</span>
+            </div>
+            <div class="ch-stat-card" id="ch-res-stars-card">
+                <span class="ch-stat-val" id="ch-res-stars">0</span>
+                <span class="ch-stat-lbl">Estrellas ⭐</span>
+            </div>
+            <div class="ch-stat-card">
+                <span class="ch-stat-val" id="ch-res-best">0</span>
+                <span class="ch-stat-lbl">Mejor marca</span>
+            </div>
+            <div class="ch-stat-card">
+                <span class="ch-stat-val" id="ch-res-total-games">0</span>
+                <span class="ch-stat-lbl">Partidas</span>
+            </div>
+        </div>
+
+        <button class="ch-modal-btn" id="ch-restart-btn">🔄 Otra ronda</button>
+        <button class="ch-modal-btn ch-modal-btn--secondary" id="ch-change-mode-btn">🎛️ Cambiar modo</button>
+        <button class="ch-modal-btn ch-modal-btn--secondary" id="ch-home-btn">🏠 Volver al Menú</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     GAME AREA
+     ══════════════════════════════════════════ -->
+<div class="ch-page">
+
+    <!-- Header -->
+    <header class="ch-header">
+        <a href="index.html" class="ch-back-btn">← Menú</a>
+        <div class="ch-title-wrap">
+            <span class="ch-icon">🕵️</span>
+            <span class="ch-title">Context Hunt</span>
+            <span class="ch-mode-badge" id="ch-mode-badge">Repaso</span>
+        </div>
+        <div class="ch-scoreboard">
+            <div class="ch-score-pill">🎯 <span id="ch-score">0</span></div>
+            <div class="ch-stars-pill" id="ch-stars" style="display:none;">⭐ 0</div>
+        </div>
+    </header>
+
+    <!-- Progress bar -->
+    <div class="ch-progress-bar-wrap">
+        <div class="ch-progress-bar" id="ch-progress-bar" style="width:0%"></div>
+    </div>
+
+    <!-- Game area wrapper -->
+    <div id="ch-game-area" style="display:none; flex-direction:column; gap:1.1rem;">
+
+        <!-- Question type indicator + round counter -->
+        <div class="ch-round-row">
+            <div class="ch-qtype-badge" id="ch-qtype-badge">🕐 Elige el Past Simple</div>
+            <div class="ch-round-counter" id="ch-round-counter">1 / 10</div>
+        </div>
+
+        <!-- Timer row (Detective only) -->
+        <div class="ch-timer-wrap" id="ch-timer-row" style="display:none;">
+            <div class="ch-timer-arc">
+                <svg class="ch-timer-svg" viewBox="0 0 70 70">
+                    <circle class="ch-arc-bg"   cx="35" cy="35" r="30"/>
+                    <circle class="ch-arc-fill" cx="35" cy="35" r="30"
+                            id="ch-arc-fill"
+                            stroke-dasharray="188.5 188.5"
+                            stroke-dashoffset="0"/>
+                </svg>
+                <div class="ch-timer-num" id="ch-timer-num">10</div>
+            </div>
+        </div>
+
+        <!-- Image / Emoji zone -->
+        <div class="ch-image-zone" id="ch-image-zone">
+            <img class="ch-image" id="ch-img" src="" alt="Acción del verbo" style="display:none;">
+            <div class="ch-emoji-card" id="ch-emoji-card">🕵️</div>
+        </div>
+
+        <!-- Hint -->
+        <p class="ch-hint" id="ch-hint"></p>
+
+        <!-- Feedback -->
+        <div class="ch-feedback" id="ch-feedback"></div>
+
+        <!-- Options -->
+        <div class="ch-options" id="ch-options">
+            <button class="ch-option" id="ch-opt-0" data-verb=""></button>
+            <button class="ch-option" id="ch-opt-1" data-verb=""></button>
+            <button class="ch-option" id="ch-opt-2" data-verb=""></button>
+        </div>
+
+    </div><!-- /ch-game-area -->
+</div><!-- /ch-page -->
+
+<script src="assets/js/contextHunt.js"></script>
+</body>
+</html>
