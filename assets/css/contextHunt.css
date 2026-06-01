@@ -596,3 +596,229 @@ body {
     .ch-title       { font-size: 0.9rem; }
     .ch-modal--wide { padding: 1.75rem 1.25rem; }
 }
+
+@media (max-width: 900px) {
+    .ch-page {
+        max-width: 100%;
+        padding: 1rem 0.9rem 2rem;
+        gap: 1rem;
+    }
+
+    .ch-modal--wide {
+        max-width: 92vw;
+    }
+
+    .ch-header {
+        padding: 0.65rem 0.8rem;
+    }
+
+    .ch-title-wrap {
+        justify-content: flex-start;
+    }
+
+    .ch-round-row {
+        padding: 0;
+    }
+
+    .ch-image-zone {
+        min-height: 215px;
+    }
+
+    .ch-image {
+        max-height: 240px;
+    }
+
+    .ch-options {
+        gap: 0.75rem;
+    }
+
+    .ch-option {
+        font-size: 1.08rem;
+        padding: 0.9rem 0.4rem;
+    }
+}
+
+@media (max-width: 680px) {
+    .ch-overlay {
+        padding: 0.75rem;
+    }
+
+    .ch-modal {
+        border-radius: 16px;
+        padding: 1.4rem 1rem;
+        gap: 0.8rem;
+    }
+
+    .ch-modal-title {
+        font-size: 1.45rem;
+    }
+
+    .ch-modal-sub {
+        font-size: 0.88rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .ch-section-label {
+        font-size: 0.85rem;
+    }
+
+    .ch-mode-features {
+        font-size: 0.68rem;
+    }
+
+    .ch-header {
+        flex-wrap: wrap;
+        justify-content: space-between;
+        row-gap: 0.6rem;
+    }
+
+    .ch-back-btn {
+        order: 1;
+    }
+
+    .ch-scoreboard {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .ch-title-wrap {
+        order: 3;
+        width: 100%;
+    }
+
+    .ch-round-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+    }
+
+    .ch-qtype-badge {
+        font-size: 0.78rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .ch-round-counter {
+        font-size: 0.78rem;
+    }
+
+    .ch-image-zone {
+        min-height: 190px;
+        border-radius: 14px;
+    }
+
+    .ch-image {
+        max-height: 210px;
+        border-radius: 12px;
+    }
+
+    .ch-emoji-card {
+        font-size: 5.2rem;
+        padding: 1rem;
+    }
+
+    .ch-hint {
+        font-size: 0.93rem;
+    }
+
+    .ch-feedback {
+        font-size: 1.03rem;
+    }
+
+    .ch-options {
+        grid-template-columns: 1fr;
+    }
+
+    .ch-option {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+        border-radius: 12px;
+        font-size: 1rem;
+        padding: 0.85rem 1rem;
+    }
+
+    .ch-opt-label {
+        margin-left: 0.5rem;
+        font-size: 0.62rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .ch-page {
+        padding: 0.75rem 0.6rem 1.4rem;
+    }
+
+    .ch-modal-emoji {
+        font-size: 2.4rem;
+    }
+
+    .ch-modal-title {
+        font-size: 1.25rem;
+    }
+
+    .ch-practice-tab span {
+        font-size: 0.84rem;
+    }
+
+    .ch-practice-tab small {
+        font-size: 0.64rem;
+    }
+
+    .ch-mode-card {
+        padding: 0.9rem 0.7rem;
+    }
+
+    .ch-mode-icon {
+        font-size: 1.6rem;
+    }
+
+    .ch-mode-name {
+        font-size: 0.9rem;
+    }
+
+    .ch-modal-btn {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+
+    .ch-back-btn,
+    .ch-score-pill,
+    .ch-stars-pill {
+        font-size: 0.78rem;
+    }
+
+    .ch-title {
+        font-size: 0.84rem;
+    }
+
+    .ch-mode-badge {
+        font-size: 0.62rem;
+        padding: 0.15rem 0.45rem;
+    }
+
+    .ch-image-zone {
+        min-height: 165px;
+    }
+
+    .ch-image {
+        max-height: 185px;
+    }
+
+    .ch-emoji-card {
+        font-size: 4.2rem;
+    }
+
+    .ch-timer-arc {
+        width: 62px;
+        height: 62px;
+    }
+
+    .ch-timer-num {
+        font-size: 1.12rem;
+    }
+
+    .ch-option {
+        font-size: 0.94rem;
+        padding: 0.75rem 0.85rem;
+    }
+}

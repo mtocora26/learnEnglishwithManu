@@ -964,3 +964,318 @@ body {
 .tense-block.collapsed .tense-header {
     border-bottom-color: transparent;
 }
+
+/* ── Responsive Layout ───────────────────── */
+@media (max-width: 1024px) {
+    .app-container {
+        padding: 1.5rem;
+    }
+
+    .welcome-section h2 {
+        font-size: 1.9rem;
+    }
+
+    .exercises-container {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .exercise-content-area {
+        padding: 2rem;
+    }
+
+    .verb-display,
+    .fc-word {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+    }
+
+    .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.9rem;
+        margin-bottom: 2rem;
+    }
+
+    .main-nav {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .nav-btn {
+        flex: 1 1 180px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .welcome-section h2 {
+        font-size: 1.65rem;
+    }
+
+    .welcome-section p {
+        font-size: 0.95rem;
+    }
+
+    .stats-bar {
+        gap: 0.75rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .stat-item {
+        min-width: calc(50% - 0.5rem);
+        padding: 0.75rem 0.6rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .tense-header {
+        padding: 1rem 1.1rem;
+    }
+
+    .tense-title {
+        font-size: 1.2rem;
+    }
+
+    .tense-subtitle {
+        font-size: 0.78rem;
+    }
+
+    .tense-body {
+        padding: 1rem;
+    }
+
+    .exercise-card {
+        padding: 1.5rem 1.1rem;
+    }
+
+    .exercise-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .exercise-content-area {
+        padding: 1.3rem 1rem;
+        border-radius: 12px;
+    }
+
+    .exercise-title {
+        font-size: 1.45rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .verb-top-row {
+        flex-direction: column;
+        gap: 0.55rem;
+        align-items: stretch;
+    }
+
+    .verb-display {
+        font-size: 2.4rem;
+        margin-bottom: 1.3rem;
+        letter-spacing: 1px;
+        word-break: break-word;
+    }
+
+    .action-buttons,
+    .mastery-btn-row {
+        flex-direction: column;
+    }
+
+    .flashcard-container {
+        max-width: 100%;
+        height: 250px;
+    }
+
+    .flashcard-face {
+        padding: 1.2rem;
+    }
+
+    .fc-word {
+        font-size: 2.3rem;
+    }
+
+    .fc-word-secondary {
+        font-size: 1.55rem;
+    }
+
+    .fc-spanish {
+        font-size: 1.2rem;
+    }
+
+    .sentence-display {
+        font-size: 1.2rem;
+        line-height: 1.55;
+    }
+
+    .inline-input {
+        min-width: 95px;
+        font-size: 1.05rem;
+        margin: 0 0.25rem;
+        padding: 0.25rem 0.45rem;
+    }
+
+    .bridge-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.7rem;
+        padding: 0.8rem;
+    }
+
+    .bridge-present {
+        text-align: center;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-right: 0;
+        padding-bottom: 0.45rem;
+        font-size: 1.15rem;
+    }
+
+    .bridge-dropzone {
+        height: 48px;
+    }
+
+    .progress-summary-row {
+        padding: 1.2rem;
+        gap: 1.1rem;
+        justify-content: center;
+    }
+
+    .global-stats-grid {
+        width: 100%;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .history-section,
+    .verb-list-section,
+    .reset-section {
+        padding: 1.2rem;
+    }
+
+    .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .verb-chip {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 520px) {
+    .logo h1 {
+        font-size: 1.25rem;
+    }
+
+    .main-nav {
+        gap: 0.5rem;
+    }
+
+    .nav-btn {
+        flex: 1 1 100%;
+        font-size: 0.86rem;
+        padding: 0.5rem 0.7rem;
+    }
+
+    .welcome-section h2 {
+        font-size: 1.35rem;
+    }
+
+    .stat-item {
+        min-width: 100%;
+    }
+
+    .tense-header-left {
+        gap: 0.7rem;
+    }
+
+    .tense-icon {
+        font-size: 1.45rem;
+    }
+
+    .tense-title {
+        font-size: 1.05rem;
+    }
+
+    .tense-subtitle {
+        font-size: 0.72rem;
+    }
+
+    .tense-toggle-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .exercise-card {
+        border-radius: 12px;
+    }
+
+    .exercise-icon {
+        font-size: 2.3rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .start-btn,
+    .check-btn,
+    .next-btn {
+        font-size: 0.9rem;
+        padding: 0.8rem 0.95rem;
+    }
+
+    .verb-display {
+        font-size: 2rem;
+    }
+
+    .verb-input {
+        font-size: 1rem;
+        padding: 0.75rem 0.85rem;
+    }
+
+    .sentence-display {
+        font-size: 1.05rem;
+    }
+
+    .flashcard-container {
+        height: 220px;
+    }
+
+    .fc-word {
+        font-size: 1.9rem;
+    }
+
+    .fc-word-secondary {
+        font-size: 1.25rem;
+    }
+
+    .fc-spanish {
+        font-size: 1rem;
+    }
+
+    .progress-ring-wrap {
+        width: 105px;
+        height: 105px;
+    }
+
+    .ring-pct {
+        font-size: 1.25rem;
+    }
+
+    .global-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .verb-chips {
+        gap: 0.45rem;
+    }
+
+    .verb-chip {
+        padding: 0.45rem 0.6rem;
+    }
+}
