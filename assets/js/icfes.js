@@ -1,5 +1,5 @@
 // Simulacro ICFES Inglés - Data & Logic
-const ICFES_QUESTIONS = [
+const ICFES_QUESTIONS_BASE = [
     // === PARTE 1: SIGNS AND NOTICES ===
     {
         part: 1,
@@ -1388,7 +1388,7 @@ const ICFES_QUESTIONS = [
 ];
 
 // Metadatos de las 7 partes oficiales para renderizar en el dashboard
-const ICFES_PARTS_CONFIG = [
+const DEFAULT_ICFES_PARTS_CONFIG = [
     { num: 1, title: "Parte 1: Signs and Notices", desc: "Avisos y carteles. Identifica dónde se encuentra cada aviso de la vida real.", icon: "🏷️" },
     { num: 2, title: "Parte 2: Definitions", desc: "Vocabulario y definiciones. Relaciona palabras con su significado en inglés.", icon: "📖" },
     { num: 3, title: "Parte 3: Short Conversations", desc: "Conversaciones cortas. Elige la mejor respuesta lógica para completar los diálogos.", icon: "💬" },
@@ -1398,10 +1398,108 @@ const ICFES_PARTS_CONFIG = [
     { num: 7, title: "Parte 7: Advanced Cloze Test", desc: "Textos complejos. Completa oraciones con opciones léxicas y gramaticales avanzadas.", icon: "🧠" }
 ];
 
+const ICFES_PARTS_CONFIG = buildPartsConfig(
+    DEFAULT_ICFES_PARTS_CONFIG,
+    window.ICFES_EXTRA_PARTS_CONFIG
+);
+
+const ICFES_QUESTIONS = buildQuestionBank(
+    ICFES_QUESTIONS_BASE,
+    collectExtraQuestions(),
+    ICFES_PARTS_CONFIG
+);
+
+function buildPartsConfig(defaultParts, extraParts) {
+    const merged = new Map();
+
+    defaultParts.forEach(part => {
+        merged.set(part.num, { ...part });
+    });
+
+    if (Array.isArray(extraParts)) {
+        extraParts.forEach(part => {
+            if (!part || typeof part !== "object" || typeof part.num !== "number") return;
+            const current = merged.get(part.num) || {};
+            merged.set(part.num, { ...current, ...part });
+        });
+    }
+
+    return Array.from(merged.values()).sort((a, b) => a.num - b.num);
+}
+
+function collectExtraQuestions() {
+    const flatQuestions = Array.isArray(window.ICFES_EXTRA_QUESTIONS)
+        ? window.ICFES_EXTRA_QUESTIONS
+        : [];
+
+    const byPart = window.ICFES_EXTRA_QUESTIONS_BY_PART;
+    const byPartQuestions = [];
+
+    if (byPart && typeof byPart === "object") {
+        Object.keys(byPart).forEach(partKey => {
+            const partQuestions = byPart[partKey];
+            if (!Array.isArray(partQuestions)) return;
+
+            partQuestions.forEach(q => {
+                if (!q || typeof q !== "object") return;
+                const parsedPart = Number(partKey);
+                byPartQuestions.push({
+                    ...q,
+                    part: Number.isFinite(parsedPart) ? parsedPart : q.part
+                });
+            });
+        });
+    }
+
+    return [...flatQuestions, ...byPartQuestions];
+}
+
+function getPartMeta(partNum, partsConfig) {
+    const partCfg = partsConfig.find(p => p.num === partNum);
+    if (!partCfg) {
+        return { title: "", desc: "" };
+    }
+
+    const rawTitle = partCfg.title || "";
+    const cleanedTitle = rawTitle.includes(":")
+        ? rawTitle.split(":").slice(1).join(":").trim()
+        : rawTitle;
+
+    return {
+        title: cleanedTitle,
+        desc: partCfg.desc || ""
+    };
+}
+
+function buildQuestionBank(baseQuestions, extraQuestions, partsConfig) {
+    const allQuestions = [...baseQuestions, ...(Array.isArray(extraQuestions) ? extraQuestions : [])];
+
+    return allQuestions
+        .filter(q => q && typeof q === "object")
+        .map(q => {
+            const partMeta = getPartMeta(q.part, partsConfig);
+
+            return {
+                ...q,
+                quote: typeof q.quote === "string" ? q.quote : "",
+                partTitle: q.partTitle || partMeta.title,
+                partDesc: q.partDesc || partMeta.desc
+            };
+        })
+        .filter(q => {
+            const hasPart = typeof q.part === "number";
+            const hasQuestionText = typeof q.questionText === "string" && q.questionText.trim().length > 0;
+            const hasOptions = Array.isArray(q.options) && q.options.length >= 2;
+            const hasCorrectIndex = Number.isInteger(q.correctIndex);
+
+            return hasPart && hasQuestionText && hasOptions && hasCorrectIndex;
+        });
+}
+
 // Estado global de la sesión
 let currentPartQuestions = [];
 let currentPartNum = null;
-let currentSituationId = null; // Guardará el ID de la situación activa, si existe
+let currentBlockId = null; // Guardará el ID del bloque activo, si existe
 let currentQuestionIndex = 0;
 let score = 0;
 let userAnswers = []; // Guarda: { questionId, selectedIndex, correctIndex, isCorrect }
@@ -1414,27 +1512,128 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Inicializar el Dashboard principal de ICFES
 function initDashboard() {
+    renderHeroStats();
     renderGlobalScore();
     renderPartCards();
 }
 
-// Obtener las situaciones únicas de una parte específica
-function getSituationsForPart(partNum) {
+function renderHeroStats() {
+    const partsCountEl = document.getElementById("hero-parts-count");
+    const questionsCountEl = document.getElementById("hero-questions-count");
+
+    if (partsCountEl) {
+        partsCountEl.innerText = String(ICFES_PARTS_CONFIG.length);
+    }
+
+    if (questionsCountEl) {
+        questionsCountEl.innerText = String(ICFES_QUESTIONS.length);
+    }
+}
+
+function getAutoBlockSizeForPart(partNum) {
+    const partCfg = ICFES_PARTS_CONFIG.find(p => p.num === partNum);
+    if (partCfg && Number.isInteger(partCfg.autoBlockSize) && partCfg.autoBlockSize > 1) {
+        return partCfg.autoBlockSize;
+    }
+
+    // Tamaños recomendados para evitar pruebas demasiado largas por parte
+    const defaults = {
+        1: 5,
+        2: 5,
+        3: 5,
+        4: 8,
+        5: 8,
+        6: 6,
+        7: 8
+    };
+
+    return defaults[partNum] || 6;
+}
+
+function getQuestionBlockId(question) {
+    return question.blockId || question.situationId || null;
+}
+
+function getQuestionBlockTitle(question, indexInPart) {
+    return question.blockTitle || question.situationTitle || `Bloque ${indexInPart + 1}`;
+}
+
+function getBlockResultKey(partNum, blockId) {
+    return `icfes_part_${partNum}_block_${blockId}_result`;
+}
+
+function getLegacySituationResultKey(partNum, blockId) {
+    return `icfes_part_${partNum}_situation_${blockId}_result`;
+}
+
+function readBlockResult(partNum, blockId) {
+    const blockResult = JSON.parse(localStorage.getItem(getBlockResultKey(partNum, blockId)));
+    if (blockResult) return blockResult;
+
+    const legacySituationResult = JSON.parse(localStorage.getItem(getLegacySituationResultKey(partNum, blockId)));
+    if (legacySituationResult) return legacySituationResult;
+
+    // Compatibilidad con versiones antiguas que guardaban progreso por parte.
+    if (typeof blockId === "string" && blockId.endsWith("_general")) {
+        const legacyPartResult = JSON.parse(localStorage.getItem(`icfes_part_${partNum}_result`));
+        if (legacyPartResult) return legacyPartResult;
+    }
+
+    return null;
+}
+
+function getBlocksForPart(partNum) {
     const partQs = ICFES_QUESTIONS.filter(q => q.part === partNum);
-    const situationsMap = new Map();
-    partQs.forEach(q => {
-        if (q.situationId) {
-            if (!situationsMap.has(q.situationId)) {
-                situationsMap.set(q.situationId, {
-                    id: q.situationId,
-                    title: q.situationTitle || "Sin Título",
-                    questions: []
+    const explicitBlocksMap = new Map();
+    const ungroupedQuestions = [];
+
+    partQs.forEach((q, idx) => {
+        const explicitBlockId = getQuestionBlockId(q);
+
+        if (explicitBlockId) {
+            if (!explicitBlocksMap.has(explicitBlockId)) {
+                explicitBlocksMap.set(explicitBlockId, {
+                    id: explicitBlockId,
+                    title: getQuestionBlockTitle(q, explicitBlocksMap.size),
+                    questions: [],
+                    order: idx
                 });
             }
-            situationsMap.get(q.situationId).questions.push(q);
+
+            explicitBlocksMap.get(explicitBlockId).questions.push(q);
+        } else {
+            ungroupedQuestions.push(q);
         }
     });
-    return Array.from(situationsMap.values());
+
+    const blocks = Array.from(explicitBlocksMap.values());
+
+    if (ungroupedQuestions.length > 0) {
+        const autoBlockSize = getAutoBlockSizeForPart(partNum);
+
+        if (explicitBlocksMap.size === 0 && ungroupedQuestions.length > autoBlockSize) {
+            for (let i = 0; i < ungroupedQuestions.length; i += autoBlockSize) {
+                const chunk = ungroupedQuestions.slice(i, i + autoBlockSize);
+                const blockNumber = Math.floor(i / autoBlockSize) + 1;
+
+                blocks.push({
+                    id: `part_${partNum}_block_${blockNumber}`,
+                    title: `Bloque ${blockNumber}`,
+                    questions: chunk,
+                    order: i + 10000
+                });
+            }
+        } else {
+            blocks.push({
+                id: `part_${partNum}_general`,
+                title: "Bloque General",
+                questions: ungroupedQuestions,
+                order: 10000
+            });
+        }
+    }
+
+    return blocks.sort((a, b) => a.order - b.order);
 }
 
 // Calcular y mostrar el puntaje global dinámicamente
@@ -1442,11 +1641,13 @@ function renderGlobalScore() {
     let totalQuestionsAnswered = 0;
     let totalCorrect = 0;
 
-    for (let p = 1; p <= 7; p++) {
-        const uniqueSits = getSituationsForPart(p);
-        if (uniqueSits.length > 0) {
-            uniqueSits.forEach(sit => {
-                const result = JSON.parse(localStorage.getItem(`icfes_part_${p}_situation_${sit.id}_result`));
+    const partNumbers = ICFES_PARTS_CONFIG.map(p => p.num);
+
+    partNumbers.forEach(p => {
+        const blocks = getBlocksForPart(p);
+        if (blocks.length > 0) {
+            blocks.forEach(block => {
+                const result = readBlockResult(p, block.id);
                 if (result) {
                     totalQuestionsAnswered += result.total;
                     totalCorrect += result.score;
@@ -1459,7 +1660,7 @@ function renderGlobalScore() {
                 totalCorrect += partResult.score;
             }
         }
-    }
+    });
 
     const bannerEl = document.getElementById("global-banner-container");
     if (totalQuestionsAnswered > 0) {
@@ -1502,52 +1703,50 @@ function renderPartCards() {
         const totalLocalQs = ICFES_QUESTIONS.filter(q => q.part === part.num).length;
 
         // Obtener datos guardados de progreso
-        const uniqueSits = getSituationsForPart(part.num);
+        const blocks = getBlocksForPart(part.num);
         
         let isCompleted = false;
         let progressPercent = 0;
         let statusBadge = `<span class="part-status-badge pending">Pendiente</span>`;
         let footerText = `<span class="part-questions-count">${totalLocalQs} preguntas</span>`;
 
-        if (uniqueSits.length > 1) {
-            // Parte con múltiples situaciones (ej. Parte 7)
-            let completedSits = 0;
-            let totalSitsScore = 0;
-            let totalSitsQuestions = 0;
-            
-            uniqueSits.forEach(sit => {
-                const res = JSON.parse(localStorage.getItem(`icfes_part_${part.num}_situation_${sit.id}_result`));
+        if (blocks.length > 1) {
+            let completedBlocks = 0;
+            let totalBlocksScore = 0;
+            let totalBlocksQuestions = 0;
+
+            blocks.forEach(block => {
+                const res = readBlockResult(part.num, block.id);
                 if (res) {
-                    completedSits++;
-                    totalSitsScore += res.score;
-                    totalSitsQuestions += res.total;
+                    completedBlocks++;
+                    totalBlocksScore += res.score;
+                    totalBlocksQuestions += res.total;
                 }
             });
-            
-            progressPercent = Math.round((completedSits / uniqueSits.length) * 100);
-            isCompleted = (completedSits === uniqueSits.length);
+
+            progressPercent = Math.round((completedBlocks / blocks.length) * 100);
+            isCompleted = (completedBlocks === blocks.length);
             
             if (isCompleted) {
                 card.classList.add("completed");
                 statusBadge = `<span class="part-status-badge done">¡Completado!</span>`;
                 footerText = `
-                    <span class="part-questions-count">${completedSits}/${uniqueSits.length} situaciones</span>
-                    <span class="part-score-display">Puntaje: ${totalSitsScore}/${totalSitsQuestions}</span>
+                    <span class="part-questions-count">${completedBlocks}/${blocks.length} bloques</span>
+                    <span class="part-score-display">Puntaje: ${totalBlocksScore}/${totalBlocksQuestions}</span>
                 `;
-            } else if (completedSits > 0) {
-                statusBadge = `<span class="part-status-badge pending" style="background: rgba(245,158,11,0.1); color: var(--icfes-accent); border: 1px solid rgba(245,158,11,0.2);">${completedSits}/${uniqueSits.length} hechas</span>`;
+            } else if (completedBlocks > 0) {
+                statusBadge = `<span class="part-status-badge pending" style="background: rgba(245,158,11,0.1); color: var(--icfes-accent); border: 1px solid rgba(245,158,11,0.2);">${completedBlocks}/${blocks.length} hechas</span>`;
                 footerText = `
-                    <span class="part-questions-count">${completedSits}/${uniqueSits.length} situaciones</span>
+                    <span class="part-questions-count">${completedBlocks}/${blocks.length} bloques</span>
                     <span class="part-score-display" style="color: var(--icfes-accent);">Progreso: ${progressPercent}%</span>
                 `;
             } else {
-                footerText = `<span class="part-questions-count">${uniqueSits.length} situaciones</span>`;
+                footerText = `<span class="part-questions-count">${blocks.length} bloques</span>`;
             }
         } else {
-            // Parte tradicional de una sola lectura o preguntas individuales
             let result = null;
-            if (uniqueSits.length === 1) {
-                result = JSON.parse(localStorage.getItem(`icfes_part_${part.num}_situation_${uniqueSits[0].id}_result`));
+            if (blocks.length === 1) {
+                result = readBlockResult(part.num, blocks[0].id);
             } else {
                 result = JSON.parse(localStorage.getItem(`icfes_part_${part.num}_result`));
             }
@@ -1605,26 +1804,25 @@ function setupEventListeners() {
     document.getElementById("situation-back-btn").addEventListener("click", exitSituationSelect);
 }
 
-// Mostrar la vista de selección de situaciones
+// Mostrar la vista de selección de bloques
 function showSituationSelect(partNum) {
     currentPartNum = partNum;
     const partConfig = ICFES_PARTS_CONFIG.find(p => p.num === partNum);
     
     document.getElementById("situation-part-title").innerText = `Parte ${partNum}: ${partConfig ? partConfig.title : ''}`;
-    document.getElementById("situation-view-title").innerText = `Practicar por Situaciones`;
-    document.getElementById("situation-view-desc").innerText = `Selecciona uno de los textos de la ${partConfig ? partConfig.title.split(":")[0] : 'sección'} para comenzar tu práctica.`;
+    document.getElementById("situation-view-title").innerText = `Practicar por Bloques`;
+    document.getElementById("situation-view-desc").innerText = `Selecciona un bloque de preguntas de la ${partConfig ? partConfig.title.split(":")[0] : 'sección'} para comenzar tu práctica.`;
     
     const gridEl = document.getElementById("situations-grid");
     gridEl.innerHTML = "";
 
-    const uniqueSits = getSituationsForPart(partNum);
+    const blocks = getBlocksForPart(partNum);
 
-    uniqueSits.forEach(sit => {
+    blocks.forEach(block => {
         const card = document.createElement("div");
         card.className = "situation-card";
 
-        const resultKey = `icfes_part_${partNum}_situation_${sit.id}_result`;
-        const result = JSON.parse(localStorage.getItem(resultKey));
+        const result = readBlockResult(partNum, block.id);
         const isCompleted = !!result;
 
         if (isCompleted) {
@@ -1641,31 +1839,33 @@ function showSituationSelect(partNum) {
             buttonText = "Repetir Práctica";
         }
 
-        let sitIcon = "📝";
-        if (sit.id.includes("chocolate")) sitIcon = "🍫";
-        else if (sit.id.includes("service") || sit.id.includes("community")) sitIcon = "🤝";
-        else if (sit.id.includes("beach")) sitIcon = "🏖️";
-        else if (sit.id.includes("museum")) sitIcon = "🏛️";
-        else if (sit.id.includes("wallet")) sitIcon = "👛";
+        let sitIcon = "🧩";
+        if (block.id.includes("chocolate")) sitIcon = "🍫";
+        else if (block.id.includes("service") || block.id.includes("community")) sitIcon = "🤝";
+        else if (block.id.includes("beach")) sitIcon = "🏖️";
+        else if (block.id.includes("museum")) sitIcon = "🏛️";
+        else if (block.id.includes("wallet")) sitIcon = "👛";
+        else if (block.id.includes("storm")) sitIcon = "⛈️";
+        else if (block.id.includes("park")) sitIcon = "🌲";
 
-        const level = sit.questions[0] ? sit.questions[0].nivel : "A2";
+        const level = block.questions[0] ? block.questions[0].nivel : "A2";
 
         card.innerHTML = `
             <div class="situation-card-header">
                 <span style="font-size: 2.2rem;">${sitIcon}</span>
                 ${statusBadge}
             </div>
-            <h3>${sit.title}</h3>
-            <p>Lee el texto y completa las preguntas correspondientes a esta lectura.</p>
+            <h3>${block.title}</h3>
+            <p>Completa este bloque para avanzar en tu progreso de la parte.</p>
             <div class="situation-card-meta">
                 <span class="sit-meta-item">📊 Nivel ${level}</span>
-                <span class="sit-meta-item">❓ ${sit.questions.length} preguntas</span>
+                <span class="sit-meta-item">❓ ${block.questions.length} preguntas</span>
                 ${scoreInfo}
             </div>
             <button class="btn-start-situation" style="margin-top: 1rem;">${buttonText}</button>
         `;
 
-        card.addEventListener("click", () => startSituationQuiz(partNum, sit.id));
+        card.addEventListener("click", () => startSituationQuiz(partNum, block.id));
         gridEl.appendChild(card);
     });
 
@@ -1675,30 +1875,29 @@ function showSituationSelect(partNum) {
     document.getElementById("situation-select-view").classList.remove("hidden");
 }
 
-// Salir del selector de situaciones y volver al dashboard
+// Salir del selector de bloques y volver al dashboard
 function exitSituationSelect() {
     document.getElementById("situation-select-view").classList.add("hidden");
     document.getElementById("dashboard-view").classList.remove("hidden");
     initDashboard();
 }
 
-// Iniciar una sección/parte del simulacro (con ruteo si tiene situaciones)
+// Iniciar una sección/parte del simulacro (con ruteo por bloques)
 function startPartQuiz(partNum) {
-    const uniqueSits = getSituationsForPart(partNum);
+    const blocks = getBlocksForPart(partNum);
 
-    // Si tiene más de una situación, redirigir al selector
-    if (uniqueSits.length > 1) {
+    // Si tiene más de un bloque, redirigir al selector
+    if (blocks.length > 1) {
         showSituationSelect(partNum);
         return;
     }
 
-    // Si tiene exactamente una situación, iniciarla directamente
-    if (uniqueSits.length === 1) {
-        startSituationQuiz(partNum, uniqueSits[0].id);
+    // Si tiene exactamente un bloque, iniciarlo directamente
+    if (blocks.length === 1) {
+        startSituationQuiz(partNum, blocks[0].id);
         return;
     }
 
-    // Comportamiento por defecto (Partes 1, 2, 3 que no tienen situaciones)
     currentPartQuestions = ICFES_QUESTIONS.filter(q => q.part === partNum);
     
     if (currentPartQuestions.length === 0) {
@@ -1707,7 +1906,7 @@ function startPartQuiz(partNum) {
     }
 
     currentPartNum = partNum;
-    currentSituationId = null;
+    currentBlockId = null;
     currentQuestionIndex = 0;
     score = 0;
     userAnswers = [];
@@ -1726,18 +1925,18 @@ function startPartQuiz(partNum) {
 }
 
 // Iniciar práctica de una situación específica
-function startSituationQuiz(partNum, situationId) {
-    const uniqueSits = getSituationsForPart(partNum);
-    const sit = uniqueSits.find(s => s.id === situationId);
+function startSituationQuiz(partNum, blockId) {
+    const blocks = getBlocksForPart(partNum);
+    const block = blocks.find(s => s.id === blockId);
 
-    if (!sit) {
-        alert("Error al cargar la situación seleccionada.");
+    if (!block) {
+        alert("Error al cargar el bloque seleccionado.");
         return;
     }
 
-    currentPartQuestions = sit.questions;
+    currentPartQuestions = block.questions;
     currentPartNum = partNum;
-    currentSituationId = situationId;
+    currentBlockId = blockId;
     currentQuestionIndex = 0;
     score = 0;
     userAnswers = [];
@@ -1747,7 +1946,7 @@ function startSituationQuiz(partNum, situationId) {
     document.getElementById("results-view").classList.add("hidden");
     document.getElementById("quiz-view").classList.remove("hidden");
 
-    document.getElementById("quiz-part-title").innerText = `Parte ${partNum}: ${sit.title}`;
+    document.getElementById("quiz-part-title").innerText = `Parte ${partNum}: ${block.title}`;
     document.getElementById("quiz-score-num").innerText = "0";
 
     loadQuestion();
@@ -1897,8 +2096,8 @@ function nextQuestion() {
 function showResults() {
     // Guardar progreso en LocalStorage
     const totalQs = currentPartQuestions.length;
-    if (currentSituationId) {
-        localStorage.setItem(`icfes_part_${currentPartNum}_situation_${currentSituationId}_result`, JSON.stringify({
+    if (currentBlockId) {
+        localStorage.setItem(getBlockResultKey(currentPartNum, currentBlockId), JSON.stringify({
             score: score,
             total: totalQs
         }));
@@ -1942,11 +2141,11 @@ function showResults() {
     document.getElementById("res-correct-val").innerText = score;
     document.getElementById("res-incorrect-val").innerText = totalQs - score;
 
-    // Configurar botón Volver a Situaciones o Secciones
+    // Configurar botón Volver a Bloques o Secciones
     const backBtn = document.getElementById("btn-back-parts");
-    const uniqueSits = getSituationsForPart(currentPartNum);
-    if (uniqueSits.length > 1) {
-        backBtn.innerText = "📋 Volver a Situaciones";
+    const blocks = getBlocksForPart(currentPartNum);
+    if (blocks.length > 1) {
+        backBtn.innerText = "📋 Volver a Bloques";
     } else {
         backBtn.innerText = "📋 Volver a Secciones";
     }
@@ -1954,28 +2153,28 @@ function showResults() {
     // Configurar el botón de reintentar
     const retryBtn = document.getElementById("btn-retry");
     retryBtn.onclick = () => {
-        if (currentSituationId) {
-            startSituationQuiz(currentPartNum, currentSituationId);
+        if (currentBlockId) {
+            startSituationQuiz(currentPartNum, currentBlockId);
         } else {
             startPartQuiz(currentPartNum);
         }
     };
 
-    // Configurar el botón de avanzar a la siguiente sección o situación
+    // Configurar el botón de avanzar al siguiente bloque o a la siguiente parte
     const nextPartBtn = document.getElementById("btn-next-part");
-    let nextSitId = null;
+    let nextBlockId = null;
 
-    if (currentSituationId) {
-        const currentSitIndex = uniqueSits.findIndex(s => s.id === currentSituationId);
-        if (currentSitIndex !== -1 && currentSitIndex < uniqueSits.length - 1) {
-            nextSitId = uniqueSits[currentSitIndex + 1].id;
+    if (currentBlockId) {
+        const currentBlockIndex = blocks.findIndex(s => s.id === currentBlockId);
+        if (currentBlockIndex !== -1 && currentBlockIndex < blocks.length - 1) {
+            nextBlockId = blocks[currentBlockIndex + 1].id;
         }
     }
 
-    if (nextSitId) {
-        nextPartBtn.innerText = `Siguiente Situación ➡️`;
+    if (nextBlockId) {
+        nextPartBtn.innerText = `Siguiente Bloque ➡️`;
         nextPartBtn.disabled = false;
-        nextPartBtn.onclick = () => startSituationQuiz(currentPartNum, nextSitId);
+        nextPartBtn.onclick = () => startSituationQuiz(currentPartNum, nextBlockId);
     } else {
         const nextPartConfig = ICFES_PARTS_CONFIG[currentPartNum]; // índice de la siguiente parte (num es index + 1)
         if (nextPartConfig && !nextPartConfig.comingSoon) {
@@ -2035,8 +2234,8 @@ function exitQuiz() {
     document.getElementById("quiz-view").classList.add("hidden");
     document.getElementById("results-view").classList.add("hidden");
     
-    const uniqueSits = getSituationsForPart(currentPartNum);
-    if (uniqueSits.length > 1) {
+    const blocks = getBlocksForPart(currentPartNum);
+    if (blocks.length > 1) {
         showSituationSelect(currentPartNum);
     } else {
         document.getElementById("situation-select-view").classList.add("hidden");
